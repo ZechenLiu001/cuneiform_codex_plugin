@@ -9,7 +9,7 @@ CUNEFLOW 的 Codex 与 Claude 插件。安装并授权后，可以通过自然�
 将 GitHub 仓库 `ZechenLiu001/cuneiform_codex_plugin` 添加为插件市场，然后安装其中的 CUNEFLOW 插件。也可以使用命令行：
 
 ```bash
-codex plugin marketplace add ZechenLiu001/cuneiform_codex_plugin --ref test
+codex plugin marketplace add ZechenLiu001/cuneiform_codex_plugin --ref main
 codex plugin add cuneflow@cuneflow
 ```
 
@@ -115,4 +115,6 @@ codex plugin add cuneflow@cuneflow
 npm test
 ```
 
-当前 `0.1.0` 版本连接 CUNEFLOW 测试环境 MCP，用于安装、授权和功能链路验证。
+当前 `main` 分支的 `0.1.1` 版本连接 CUNEFLOW 正式环境 MCP（`https://mcp.cuneflow.com/mcp`）。
+
+测试环境插件保留在 `test` 分支，安装时使用 `--ref test`。从测试环境切换到正式环境后，请重新授权并使用正式账号验证功能。
