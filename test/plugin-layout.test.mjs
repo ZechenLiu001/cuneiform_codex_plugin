@@ -26,9 +26,24 @@ test("shares one plugin identity across Codex and Claude manifests", async () =>
   ]);
 });
 
+test("keeps English and Chinese READMEs linked and structurally aligned", async () => {
+  const english = await readFile(new URL("README.md", workspaceRoot), "utf8");
+  const chinese = await readFile(new URL("README.zh-CN.md", workspaceRoot), "utf8");
+  const sectionCount = (content) => content.match(/^## /gm)?.length ?? 0;
+
+  assert.ok(english.includes("](README.zh-CN.md)"), "README.md must link to the Chinese README");
+  assert.ok(chinese.includes("](README.md)"), "README.zh-CN.md must link to the English README");
+  assert.equal(sectionCount(english), sectionCount(chinese));
+  for (const command of ["codex plugin marketplace add", "codex plugin add cuneflow@cuneflow", "claude --plugin-dir"]) {
+    assert.ok(english.includes(command), `README.md is missing: ${command}`);
+    assert.ok(chinese.includes(command), `README.zh-CN.md is missing: ${command}`);
+  }
+});
+
 test("keeps README examples aligned with Codex default prompts", async () => {
   const codex = await readJson(".codex-plugin/plugin.json");
-  const readme = await readFile(new URL("README.md", workspaceRoot), "utf8");
+  // Codex 默认提示词是中文，对应中文 README。
+  const readme = await readFile(new URL("README.zh-CN.md", workspaceRoot), "utf8");
 
   for (const prompt of codex.interface.defaultPrompt) {
     assert.ok(readme.includes(prompt), `README is missing default prompt: ${prompt}`);
@@ -49,7 +64,7 @@ test("exposes one authenticated CUNEFLOW MCP server on both hosts", async () => 
 test("keeps OAuth recovery available after a user cancels initial authorization", async () => {
   const connectSkill = await readFile(new URL("skills/connect-cuneflow/SKILL.md", pluginRoot), "utf8");
   const mainSkill = await readFile(new URL("skills/cuneflow/SKILL.md", pluginRoot), "utf8");
-  const readme = await readFile(new URL("README.md", workspaceRoot), "utf8");
+  const readme = await readFile(new URL("README.zh-CN.md", workspaceRoot), "utf8");
 
   for (const content of [connectSkill, mainSkill]) {
     assert.ok(content.includes("codex mcp login cuneflow"));
@@ -62,7 +77,7 @@ test("keeps OAuth recovery available after a user cancels initial authorization"
 
 test("disconnects OAuth before a conversational full uninstall", async () => {
   const disconnectSkill = await readFile(new URL("skills/disconnect-cuneflow/SKILL.md", pluginRoot), "utf8");
-  const readme = await readFile(new URL("README.md", workspaceRoot), "utf8");
+  const readme = await readFile(new URL("README.zh-CN.md", workspaceRoot), "utf8");
 
   const logoutIndex = disconnectSkill.indexOf("codex mcp logout cuneflow");
   const removeIndex = disconnectSkill.indexOf("codex plugin remove cuneflow@cuneflow");
