@@ -1,31 +1,78 @@
 <div align="center">
 
-# CUNEFLOW Plugin
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/cuneflow-wordmark-light.svg">
+  <img src="assets/cuneflow-wordmark-dark.svg" alt="CUNEFLOW" height="56">
+</picture>
 
-**Bring your CUNEFLOW meetings, schedules, and files into AI coding agents.**
+### Your meetings, schedules, and files — inside Codex and Claude Code
+
+[Website](https://www.cuneflow.com) · [Privacy](https://www.cuneflow.com/privacy) · [Terms](https://www.cuneflow.com/terms) · [Support](mailto:support@cuneflow.com)
 
 English · [简体中文](README.zh-CN.md)
 
-[![Version](https://img.shields.io/badge/version-0.1.0--test-4F46E5)](#development) [![MCP](https://img.shields.io/badge/MCP-Streamable%20HTTP-4F46E5)](https://modelcontextprotocol.io) [![Codex](https://img.shields.io/badge/Codex-supported-111827)](#codex) [![Claude Code](https://img.shields.io/badge/Claude%20Code-preview-D97757)](#claude-code) [![Node](https://img.shields.io/badge/node-%E2%89%A518-339933)](#development)
+[![Version](https://img.shields.io/badge/version-0.1.0--test-191919)](#development) [![MCP](https://img.shields.io/badge/MCP-Streamable%20HTTP-191919)](https://modelcontextprotocol.io)
+
+<img src="assets/cuneflow-notebook.jpg" alt="CUNEFLOW AI Notebook with its pen, folio cover, and box" width="720">
 
 </div>
 
-Once installed and authorized, you can ask in plain language about your meetings, transcripts, summaries, action items, and schedules, and safely upload files you attach in the conversation to CUNEFLOW.
+Ask in plain language about your CUNEFLOW meetings, transcripts, summaries, action items, and schedules, and safely upload files you attach in the conversation — without leaving your AI agent.
 
 > [!NOTE]
 > Version `0.1.0` connects to the CUNEFLOW **test environment** MCP server and is meant for verifying installation, authorization, and end-to-end flows.
 
 ## Contents
 
+- [Installation](#installation)
 - [Features](#features)
 - [How it works](#how-it-works)
-- [Installation](#installation)
 - [Connect, disconnect, and uninstall](#connect-disconnect-and-uninstall)
 - [Example prompts](#example-prompts)
 - [Screensavers for CUNEFLOW AI Notebook](#screensavers-for-cuneflow-ai-notebook)
 - [Privacy and security](#privacy-and-security)
 - [What's inside](#whats-inside)
 - [Development](#development)
+
+## Installation
+
+> [!NOTE]
+> CUNEFLOW is not yet listed in the official Codex plugin directory or the official Claude plugin marketplace. On both hosts, install it from this repository's own marketplace.
+
+<table>
+<tr>
+<th width="50%">Codex</th>
+<th width="50%">Claude Code</th>
+</tr>
+<tr>
+<td valign="top">
+
+Add this repository as a marketplace, then install the plugin:
+
+```bash
+codex plugin marketplace add \
+  ZechenLiu001/cuneiform_codex_plugin
+codex plugin add cuneflow@cuneflow
+```
+
+Start a new task and say **"Connect CUNEFLOW"** to sign in. After authorizing, start another new task to try it out.
+
+</td>
+<td valign="top">
+
+Add this repository as a marketplace, then install the plugin:
+
+```bash
+claude plugin marketplace add \
+  ZechenLiu001/cuneiform_codex_plugin
+claude plugin install cuneflow@cuneflow
+```
+
+Start a new session, run `/mcp`, choose **`plugin:cuneflow:cuneflow`**, and sign in in your browser.
+
+</td>
+</tr>
+</table>
 
 ## Features
 
@@ -36,6 +83,19 @@ Once installed and authorized, you can ask in plain language about your meetings
 | 📄 | **Files** | Search, read, create, and rename CUNEFLOW files |
 | ⬆️ | **Uploads** | Upload PDF and EPUB files you explicitly attach in the conversation |
 | 🖼️ | **Screensavers** | Build, validate, and publish static and data-driven screensavers for CUNEFLOW AI Notebook |
+
+<table>
+<tr>
+<td width="50%"><img src="assets/notebook-transcript.jpg" alt="A meeting transcript on the CUNEFLOW AI Notebook E-Ink screen"></td>
+<td width="50%"><img src="assets/notebook-handwriting.jpg" alt="Handwritten notes and an AI mind map on the CUNEFLOW AI Notebook"></td>
+</tr>
+<tr>
+<td align="center">Meetings recorded and transcribed on the notebook…</td>
+<td align="center">…and handwriting captured alongside them</td>
+</tr>
+</table>
+
+The plugin brings this content into your AI agent, so you can summarize, search, and follow up without switching apps.
 
 ## How it works
 
@@ -50,47 +110,18 @@ flowchart LR
 - **MCP connection** — the plugin registers the hosted CUNEFLOW MCP server. Sign-in uses OAuth managed by your AI host; you never paste tokens.
 - **File uploads** — a bundled helper streams the raw bytes straight to a short-lived presigned URL returned by CUNEFLOW. File contents never pass through MCP JSON-RPC, and you don't need to install `cuneflow-cli`.
 
-## Installation
-
-### Codex
-
-Add this GitHub repository as a plugin marketplace, then install the CUNEFLOW plugin:
-
-```bash
-codex plugin marketplace add ZechenLiu001/cuneiform_codex_plugin --ref test
-```
-
-```bash
-codex plugin add cuneflow@cuneflow
-```
-
-Start a new Codex task and say **"Connect CUNEFLOW"**. The plugin starts a Codex-managed OAuth flow. After you finish authorizing, start another new task to try meetings, schedules, or files.
-
-### Claude Code
-
-> [!IMPORTANT]
-> Claude Code support is in preview and is not yet listed in a Claude plugin marketplace. For now, load the plugin from a local clone:
-
-```bash
-git clone -b test https://github.com/ZechenLiu001/cuneiform_codex_plugin.git
-```
-
-```bash
-claude --plugin-dir ./cuneiform_codex_plugin/plugins/cuneflow
-```
-
-Then run `/mcp` in Claude Code to sign in to CUNEFLOW.
-
 ## Connect, disconnect, and uninstall
 
-| Goal | What to say in Codex | What happens |
+| Goal | Codex — say in chat | Claude Code |
 | --- | --- | --- |
-| Connect or reconnect | *"Connect or re-authorize CUNEFLOW"* | Starts one OAuth flow. No need to reinstall the plugin or edit any config. |
-| Sign out | *"Disconnect CUNEFLOW and clear the sign-in"* | Runs `codex mcp logout cuneflow`; the plugin stays installed. |
-| Full uninstall | *"Fully uninstall CUNEFLOW and clear the sign-in"* | Signs out of MCP first, then removes the plugin. |
+| Connect or reconnect | *"Connect or re-authorize CUNEFLOW"* | Run `/mcp`, choose `plugin:cuneflow:cuneflow`, and sign in |
+| Sign out | *"Disconnect CUNEFLOW and clear the sign-in"* — runs `codex mcp logout cuneflow` and keeps the plugin | Run `/mcp`, choose `plugin:cuneflow:cuneflow`, and clear its authentication |
+| Full uninstall | *"Fully uninstall CUNEFLOW and clear the sign-in"* — signs out first, then removes the plugin | Sign out as above, then `claude plugin uninstall cuneflow@cuneflow` |
+
+Reconnecting never requires reinstalling the plugin or editing any config.
 
 <details>
-<summary><b>More about authorization</b></summary>
+<summary><b>More about authorization in Codex</b></summary>
 
 - If you canceled or declined authorization when you first installed, or your sign-in expires later, just ask to connect again.
 - You can also send a meeting, schedule, or file request directly. If CUNEFLOW is not connected, the plugin starts **one** OAuth flow for that request. If you close or decline the page, it won't keep prompting; ask to connect again when you're ready.
@@ -179,15 +210,19 @@ The plugin builds and validates the screensaver package, shows you a publishing 
 ## What's inside
 
 ```text
+.agents/plugins/marketplace.json   # Codex marketplace
+.claude-plugin/marketplace.json    # Claude Code marketplace
+assets/                            # README images
 plugins/cuneflow/
 ├── .codex-plugin/plugin.json      # Codex manifest
 ├── .claude-plugin/plugin.json     # Claude Code manifest
-├── .mcp.json                      # Hosted MCP server
+├── .claude-plugin/mcp.json        # Hosted MCP server (Claude Code)
+├── .mcp.json                      # Hosted MCP server (Codex)
 ├── scripts/attachment-helper.mjs  # Local upload helper
 └── skills/
     ├── cuneflow/                  # Meetings, schedules, files, uploads
-    ├── connect-cuneflow/          # Connect or re-authorize (Codex)
-    ├── disconnect-cuneflow/       # Sign out or fully uninstall (Codex)
+    ├── connect-cuneflow/          # Connect or re-authorize
+    ├── disconnect-cuneflow/       # Sign out or fully uninstall
     └── build-cune-screensavers/   # Build and publish screensavers
 ```
 
@@ -199,9 +234,19 @@ Requires Node.js 18 or later.
 npm test
 ```
 
-## Links
+Validate the Claude Code marketplace and plugin manifests:
 
-- Website: [cuneflow.com](https://www.cuneflow.com)
-- Privacy policy: [cuneflow.com/privacy](https://www.cuneflow.com/privacy)
-- Terms of service: [cuneflow.com/terms](https://www.cuneflow.com/terms)
-- Support: [support@cuneflow.com](mailto:support@cuneflow.com)
+```bash
+claude plugin validate .
+```
+
+To try local changes in Claude Code without installing, load the plugin directory for one session:
+
+```bash
+claude --plugin-dir ./plugins/cuneflow
+```
+
+<div align="center">
+<br>
+<sub>Listen · Sketch · Think — <a href="https://www.cuneflow.com">cuneflow.com</a></sub>
+</div>

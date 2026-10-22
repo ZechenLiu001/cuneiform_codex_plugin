@@ -34,10 +34,51 @@ test("keeps English and Chinese READMEs linked and structurally aligned", async 
   assert.ok(english.includes("](README.zh-CN.md)"), "README.md must link to the Chinese README");
   assert.ok(chinese.includes("](README.md)"), "README.zh-CN.md must link to the English README");
   assert.equal(sectionCount(english), sectionCount(chinese));
-  for (const command of ["codex plugin marketplace add", "codex plugin add cuneflow@cuneflow", "claude --plugin-dir"]) {
+  const commands = [
+    "codex plugin marketplace add",
+    "codex plugin add cuneflow@cuneflow",
+    "claude plugin marketplace add",
+    "ZechenLiu001/cuneiform_codex_plugin",
+    "claude plugin install cuneflow@cuneflow",
+    "plugin:cuneflow:cuneflow",
+    "claude --plugin-dir"
+  ];
+  for (const command of commands) {
     assert.ok(english.includes(command), `README.md is missing: ${command}`);
     assert.ok(chinese.includes(command), `README.zh-CN.md is missing: ${command}`);
   }
+});
+
+test("publishes the plugin through a Claude Code marketplace at the repository root", async () => {
+  const marketplace = JSON.parse(await readFile(new URL(".claude-plugin/marketplace.json", workspaceRoot), "utf8"));
+  const claude = await readJson(".claude-plugin/plugin.json");
+  const codexMarketplace = JSON.parse(await readFile(new URL(".agents/plugins/marketplace.json", workspaceRoot), "utf8"));
+
+  // 两个宿主使用相同的安装 ID：cuneflow@cuneflow。
+  assert.equal(marketplace.name, codexMarketplace.name);
+  assert.ok(marketplace.owner?.name);
+  assert.equal(marketplace.plugins.length, 1);
+  assert.equal(marketplace.plugins[0].name, claude.name);
+  assert.equal(marketplace.plugins[0].source, "./plugins/cuneflow");
+  await access(new URL("plugins/cuneflow/.claude-plugin/plugin.json", workspaceRoot));
+});
+
+test("gives Claude Code its own sign-in path and an explicit helper location", async () => {
+  const mainSkill = await readFile(new URL("skills/cuneflow/SKILL.md", pluginRoot), "utf8");
+  const connectSkill = await readFile(new URL("skills/connect-cuneflow/SKILL.md", pluginRoot), "utf8");
+  const disconnectSkill = await readFile(new URL("skills/disconnect-cuneflow/SKILL.md", pluginRoot), "utf8");
+  const publishing = await readFile(new URL("skills/build-cune-screensavers/references/cuneflow-publishing.md", pluginRoot), "utf8");
+
+  for (const content of [mainSkill, connectSkill, disconnectSkill]) {
+    assert.ok(content.includes("plugin:cuneflow:cuneflow"));
+    assert.ok(content.includes("不要运行任何 `codex` 命令"));
+  }
+  for (const content of [mainSkill, publishing]) {
+    assert.ok(content.includes("${CLAUDE_PLUGIN_ROOT}/scripts/attachment-helper.mjs"));
+    assert.ok(content.includes("../../scripts/attachment-helper.mjs"));
+  }
+  // 相对路径必须真的指向插件内置的 Helper。
+  await access(new URL("skills/cuneflow/../../scripts/attachment-helper.mjs", pluginRoot));
 });
 
 test("keeps README examples aligned with Codex default prompts", async () => {

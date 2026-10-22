@@ -27,6 +27,15 @@ description: 断开 CUNEFLOW OAuth 连接，或在用户明确要求彻底卸载
 
 如果用户只说“卸载插件”，在执行前简短说明：当前 Codex 单独卸载插件可能保留 OAuth 凭据，询问用户是否还要断开 CUNEFLOW。没有得到清除授权的明确意图时，不要运行 logout。
 
+## Claude Code
+
+不要运行任何 `codex` 命令。Claude Code 的登录状态和插件安装都由用户在界面中操作：
+
+- **仅断开连接**：请用户运行 `/mcp`，选择 `plugin:cuneflow:cuneflow`，使用其中清除授权的选项。
+- **彻底卸载**：先按上一条清除授权，再请用户运行 `/plugin` 卸载 `cuneflow`，或在终端运行 `claude plugin uninstall cuneflow@cuneflow`。
+
+不要声称已经完成断开或卸载；以用户确认的结果为准。
+
 ## 能力边界
 
 - 本 Skill 只会在对话中被 Codex 选择并执行，不能拦截 Codex 设置界面的手动卸载按钮。

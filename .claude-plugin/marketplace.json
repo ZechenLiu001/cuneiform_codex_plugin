@@ -1,0 +1,19 @@
+{
+  "name": "cuneflow",
+  "owner": {
+    "name": "CUNEFLOW",
+    "email": "support@cuneflow.com"
+  },
+  "metadata": {
+    "description": "CUNEFLOW plugins for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "cuneflow",
+      "source": "./plugins/cuneflow",
+      "description": "Search CUNEFLOW meetings, manage schedules and files, upload attached files, and publish AI Notebook screensavers.",
+      "category": "productivity",
+      "homepage": "https://www.cuneflow.com"
+    }
+  ]
+}

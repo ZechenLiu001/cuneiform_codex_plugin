@@ -1,31 +1,78 @@
 <div align="center">
 
-# CUNEFLOW 插件
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/cuneflow-wordmark-light.svg">
+  <img src="assets/cuneflow-wordmark-dark.svg" alt="CUNEFLOW" height="56">
+</picture>
 
-**在 AI 编程助手里直接使用 CUNEFLOW 的会议、日程和文件。**
+### 在 Codex 和 Claude Code 里直接使用你的会议、日程和文件
+
+[官网](https://www.cuneflow.com) · [隐私政策](https://www.cuneflow.com/privacy) · [服务条款](https://www.cuneflow.com/terms) · [联系支持](mailto:support@cuneflow.com)
 
 [English](README.md) · 简体中文
 
-[![Version](https://img.shields.io/badge/version-0.1.0--test-4F46E5)](#开发) [![MCP](https://img.shields.io/badge/MCP-Streamable%20HTTP-4F46E5)](https://modelcontextprotocol.io) [![Codex](https://img.shields.io/badge/Codex-supported-111827)](#codex) [![Claude Code](https://img.shields.io/badge/Claude%20Code-preview-D97757)](#claude-code) [![Node](https://img.shields.io/badge/node-%E2%89%A518-339933)](#开发)
+[![Version](https://img.shields.io/badge/version-0.1.0--test-191919)](#开发) [![MCP](https://img.shields.io/badge/MCP-Streamable%20HTTP-191919)](https://modelcontextprotocol.io)
+
+<img src="assets/cuneflow-notebook.jpg" alt="CUNEFLOW AI Notebook 及配套的笔、保护套和包装盒" width="720">
 
 </div>
 
-安装并授权后，可以通过自然语言查询会议、转写、纪要、行动项和日程，也可以把当前对话中附加的本地文件安全上传到 CUNEFLOW。
+安装并授权后，可以通过自然语言查询会议、转写、纪要、行动项和日程，也可以把当前对话中附加的本地文件安全上传到 CUNEFLOW，全程不用离开 AI 助手。
 
 > [!NOTE]
 > 当前 `0.1.0` 版本连接 CUNEFLOW **测试环境** MCP，用于安装、授权和功能链路验证。
 
 ## 目录
 
+- [安装](#安装)
 - [功能](#功能)
 - [工作原理](#工作原理)
-- [安装](#安装)
 - [连接、断开与卸载](#连接断开与卸载)
 - [使用示例](#使用示例)
 - [CUNEFLOW AI Notebook 屏保](#cuneflow-ai-notebook-屏保)
 - [隐私与安全](#隐私与安全)
 - [插件内容](#插件内容)
 - [开发](#开发)
+
+## 安装
+
+> [!NOTE]
+> CUNEFLOW 目前尚未上架 Codex 官方插件目录和 Claude 官方插件市场。两个宿主都通过本仓库自建的插件市场安装。
+
+<table>
+<tr>
+<th width="50%">Codex</th>
+<th width="50%">Claude Code</th>
+</tr>
+<tr>
+<td valign="top">
+
+将本仓库添加为插件市场，然后安装插件：
+
+```bash
+codex plugin marketplace add \
+  ZechenLiu001/cuneiform_codex_plugin
+codex plugin add cuneflow@cuneflow
+```
+
+新建一个任务，发送 **“连接 CUNEFLOW”** 完成授权。授权后再新建一个任务开始使用。
+
+</td>
+<td valign="top">
+
+将本仓库添加为插件市场，然后安装插件：
+
+```bash
+claude plugin marketplace add \
+  ZechenLiu001/cuneiform_codex_plugin
+claude plugin install cuneflow@cuneflow
+```
+
+新开一个会话，运行 `/mcp`，选择 **`plugin:cuneflow:cuneflow`**，在浏览器中登录。
+
+</td>
+</tr>
+</table>
 
 ## 功能
 
@@ -36,6 +83,19 @@
 | 📄 | **文件** | 查询、读取、创建和重命名 CUNEFLOW 文件 |
 | ⬆️ | **上传** | 上传当前对话中明确附加的 PDF、EPUB 文件 |
 | 🖼️ | **屏保** | 制作、验证和发布 CUNEFLOW AI Notebook 静态屏保及日程、阅读、会议动态屏保 |
+
+<table>
+<tr>
+<td width="50%"><img src="assets/notebook-transcript.jpg" alt="CUNEFLOW AI Notebook 墨水屏上的会议转写"></td>
+<td width="50%"><img src="assets/notebook-handwriting.jpg" alt="CUNEFLOW AI Notebook 上的手写笔记和 AI 思维导图"></td>
+</tr>
+<tr>
+<td align="center">在笔记本上录音并转写会议……</td>
+<td align="center">……手写笔记也一起记录下来</td>
+</tr>
+</table>
+
+插件把这些内容带进 AI 助手，总结、搜索和跟进都不用切换应用。
 
 ## 工作原理
 
@@ -50,47 +110,18 @@ flowchart LR
 - **MCP 连接**：插件注册 CUNEFLOW 托管的 MCP 服务，登录使用 AI 宿主管理的 OAuth 授权，不需要手动粘贴任何令牌。
 - **文件上传**：插件内置 Helper 将原始字节直接发送到 CUNEFLOW 返回的短时效预签名地址。文件内容不会进入 MCP JSON-RPC，也不要求用户安装 `cuneflow-cli`。
 
-## 安装
-
-### Codex
-
-将 GitHub 仓库 `ZechenLiu001/cuneiform_codex_plugin` 添加为插件市场，然后安装其中的 CUNEFLOW 插件：
-
-```bash
-codex plugin marketplace add ZechenLiu001/cuneiform_codex_plugin --ref test
-```
-
-```bash
-codex plugin add cuneflow@cuneflow
-```
-
-安装完成后新建一个 Codex 任务，发送 **“连接 CUNEFLOW”**。插件会启动由 Codex 管理的 OAuth 授权流程；完成授权后，建议再新建一个任务验证会议、日程或文件功能。
-
-### Claude Code
-
-> [!IMPORTANT]
-> Claude Code 支持目前为预览版，尚未上架 Claude 插件市场。现阶段请从本地克隆加载：
-
-```bash
-git clone -b test https://github.com/ZechenLiu001/cuneiform_codex_plugin.git
-```
-
-```bash
-claude --plugin-dir ./cuneiform_codex_plugin/plugins/cuneflow
-```
-
-然后在 Claude Code 中运行 `/mcp` 登录 CUNEFLOW。
-
 ## 连接、断开与卸载
 
-| 目的 | 在 Codex 中发送 | 效果 |
+| 目的 | Codex：在对话中发送 | Claude Code |
 | --- | --- | --- |
-| 连接或重新连接 | `连接或重新授权 CUNEFLOW` | 启动一次 OAuth 授权，不需要卸载插件或编辑配置 |
-| 断开连接 | `断开 CUNEFLOW，并清除登录状态` | 运行 `codex mcp logout cuneflow`，清除凭据但保留插件 |
-| 彻底卸载 | `彻底卸载 CUNEFLOW，并清除登录状态` | 先退出 MCP 登录，再卸载插件 |
+| 连接或重新连接 | `连接或重新授权 CUNEFLOW` | 运行 `/mcp`，选择 `plugin:cuneflow:cuneflow` 并登录 |
+| 断开连接 | `断开 CUNEFLOW，并清除登录状态`：运行 `codex mcp logout cuneflow`，清除凭据但保留插件 | 运行 `/mcp`，选择 `plugin:cuneflow:cuneflow` 并清除授权 |
+| 彻底卸载 | `彻底卸载 CUNEFLOW，并清除登录状态`：先退出 MCP 登录，再卸载插件 | 先按上一行断开连接，再运行 `claude plugin uninstall cuneflow@cuneflow` |
+
+重新连接时不需要卸载插件或编辑配置。
 
 <details>
-<summary><b>关于授权的更多说明</b></summary>
+<summary><b>关于 Codex 授权的更多说明</b></summary>
 
 - 如果首次安装时取消或拒绝了授权，或者登录凭据后来失效，直接再次发送连接请求即可。
 - 也可以直接提出会议、日程或文件请求；检测到未连接时，插件会为该请求启动**一次** OAuth 授权流程。若用户关闭或拒绝授权页面，插件不会反复弹出，之后再次发送连接请求即可重试。
@@ -179,15 +210,19 @@ claude --plugin-dir ./cuneiform_codex_plugin/plugins/cuneflow
 ## 插件内容
 
 ```text
+.agents/plugins/marketplace.json   # Codex 插件市场
+.claude-plugin/marketplace.json    # Claude Code 插件市场
+assets/                            # README 图片
 plugins/cuneflow/
 ├── .codex-plugin/plugin.json      # Codex 插件清单
 ├── .claude-plugin/plugin.json     # Claude Code 插件清单
-├── .mcp.json                      # 托管的 MCP 服务
+├── .claude-plugin/mcp.json        # 托管的 MCP 服务（Claude Code）
+├── .mcp.json                      # 托管的 MCP 服务（Codex）
 ├── scripts/attachment-helper.mjs  # 本地上传 Helper
 └── skills/
     ├── cuneflow/                  # 会议、日程、文件与上传
-    ├── connect-cuneflow/          # 连接或重新授权（Codex）
-    ├── disconnect-cuneflow/       # 断开连接或彻底卸载（Codex）
+    ├── connect-cuneflow/          # 连接或重新授权
+    ├── disconnect-cuneflow/       # 断开连接或彻底卸载
     └── build-cune-screensavers/   # 制作与发布屏保
 ```
 
@@ -199,9 +234,19 @@ plugins/cuneflow/
 npm test
 ```
 
-## 相关链接
+校验 Claude Code 插件市场和插件清单：
 
-- 官网：[cuneflow.com](https://www.cuneflow.com)
-- 隐私政策：[cuneflow.com/privacy](https://www.cuneflow.com/privacy)
-- 服务条款：[cuneflow.com/terms](https://www.cuneflow.com/terms)
-- 支持：[support@cuneflow.com](mailto:support@cuneflow.com)
+```bash
+claude plugin validate .
+```
+
+不安装、只在本次 Claude Code 会话中试用本地修改：
+
+```bash
+claude --plugin-dir ./plugins/cuneflow
+```
+
+<div align="center">
+<br>
+<sub>Listen · Sketch · Think — <a href="https://www.cuneflow.com">cuneflow.com</a></sub>
+</div>

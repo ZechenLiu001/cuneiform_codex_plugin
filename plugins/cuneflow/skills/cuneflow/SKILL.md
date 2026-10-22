@@ -43,7 +43,12 @@ description: 使用 CUNEFLOW 查询和加工会议、转写、纪要、行动项
 9. 日程写入分支：仅当用户明确要求“创建日程”“加入日历”或“设置提醒”时调用 `create_schedule_task`；时间信息不完整时追问。同一请求同时包含会议和日程意图时，使用会议返回的 `meetingId` 作为 `linkedMeetingId`。
 10. 修改日程必须先调用对应的 `preview_*` 工具；只有用户明确确认预览结果后，才能调用对应的 `apply_*` 工具。
 11. `apply_*` 只能使用预览返回的 `confirmationToken`，不能绕过预览直接修改。
-12. 用户已经明确请求使用 CUNEFLOW，但工具因未登录、MCP 未连接、凭据失效或授权被取消而不可用时，立即按插件内置 `connect-cuneflow` Skill 运行 `codex mcp login cuneflow`，不要只回复“请重新连接”，也不要要求用户安装 `cuneflow-cli`。一次用户请求最多启动一次登录；用户取消后不得循环弹出。如果是 `insufficient_scope`，按同一流程重新授权所需权限，不要重复调用失败的业务工具。
+12. 用户已经明确请求使用 CUNEFLOW，但工具因未登录、MCP 未连接、凭据失效或授权被取消而不可用时，立即按插件内置 `connect-cuneflow` Skill 为当前宿主恢复连接，不要只回复“请重新连接”，也不要要求用户安装 `cuneflow-cli`：
+    - Codex：运行 `codex mcp login cuneflow`。
+    - Claude Code：不要运行任何 `codex` 命令。请用户在输入框运行 `/mcp`，选择 `plugin:cuneflow:cuneflow` 并在浏览器完成登录，然后重试原请求；`/mcp` 只能由用户执行。
+    - 其他宿主：使用宿主自带的 MCP 连接或授权入口。
+
+    一次用户请求最多启动一次登录；用户取消后不得循环弹出。如果是 `insufficient_scope`，按同一流程重新授权所需权限，不要重复调用失败的业务工具。
 
 ## 查询日程
 
@@ -85,7 +90,11 @@ description: 使用 CUNEFLOW 查询和加工会议、转写、纪要、行动项
 授权边界：文件范围不明确、需要访问当前对话之外的本机文件，或实际上传目标和用途超出用户原始请求时，必须先询问。宿主针对命令执行、网络访问或外部写入弹出的系统级审批仍由宿主管理，不得绕过；本规则只避免 Agent 额外生成重复的聊天确认。
 
 1. 只使用用户在当前请求中明确附加的文件。不要搜索本机目录或猜测路径。
-2. 找到本 Skill 所属插件目录中的 `scripts/attachment-helper.mjs`。它是插件内置脚本，不是 MCP Server，也不要求用户安装 `cuneflow-cli`。
+2. 确定上传 Helper 的绝对路径（下文记作 `<helper>`）：
+   - Claude Code：`${CLAUDE_PLUGIN_ROOT}/scripts/attachment-helper.mjs`，加载本 Skill 时会被替换为实际路径。
+   - 其他宿主，或上面的 `${CLAUDE_PLUGIN_ROOT}` 没有被替换时：本 Skill 目录向上两级的 `scripts/attachment-helper.mjs`，即 `<本 Skill 目录>/../../scripts/attachment-helper.mjs`。
+
+   Helper 是插件内置脚本，不是 MCP Server，也不要求用户安装 `cuneflow-cli`。
 3. 使用 `node <helper> inspect <absolute-path>...` 获取 `name`、`sizeBytes`、`contentType` 和 `contentMd5`。只把这些元数据传给 `create_file_upload_session`；文件正文不得进入模型上下文或 MCP JSON-RPC，也不得转为 Base64 参数。
 4. 同一次上传重试必须复用同一 `idempotencyKey`。调用 `create_file_upload_session` 后，将每个本地文件与返回项按顺序和名称严格对应。
 5. 对每个文件运行 `node <helper> put <absolute-path>`，并通过标准输入传入仅包含 `uploadUrl`、`method`、`headers` 以及原检查结果 `expected` 的 JSON。不要把完整预签名 URL 写入日志、长期文件或用户回复。
