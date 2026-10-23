@@ -7,7 +7,7 @@
 
 ### 在 Codex 和 Claude Code 里直接使用你的会议、日程和文件
 
-[官网](https://www.cuneflow.com) · [隐私政策](https://www.cuneflow.com/privacy) · [服务条款](https://www.cuneflow.com/terms) · [联系支持](mailto:support@cuneflow.com)
+[官网](https://www.cuneflow.com) · [隐私政策](https://www.cuneflow.com/privacy-policy) · [服务条款](https://www.cuneflow.com/terms-of-service) · [联系支持](mailto:support@cuneflow.com)
 
 [English](README.md) · 简体中文
 

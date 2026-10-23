@@ -7,7 +7,7 @@
 
 ### Your meetings, schedules, and files — inside Codex and Claude Code
 
-[Website](https://www.cuneflow.com) · [Privacy](https://www.cuneflow.com/privacy) · [Terms](https://www.cuneflow.com/terms) · [Support](mailto:support@cuneflow.com)
+[Website](https://www.cuneflow.com) · [Privacy](https://www.cuneflow.com/privacy-policy) · [Terms](https://www.cuneflow.com/terms-of-service) · [Support](mailto:support@cuneflow.com)
 
 English · [简体中文](README.zh-CN.md)
 

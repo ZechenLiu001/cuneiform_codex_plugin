@@ -209,3 +209,18 @@ test("keeps effective schedule semantics aligned on both hosts", async () => {
     assert.ok(skill.includes("用户没有表达状态限制时不传 `statusFilters`"));
   }
 });
+
+test("links to the live privacy policy and terms of service pages", async () => {
+  const codex = await readJson(".codex-plugin/plugin.json");
+  const privacy = "https://www.cuneflow.com/privacy-policy";
+  const terms = "https://www.cuneflow.com/terms-of-service";
+
+  // /privacy 和 /terms 在官网上是 404，目录审核会检查这两个链接。
+  assert.equal(codex.interface.privacyPolicyURL, privacy);
+  assert.equal(codex.interface.termsOfServiceURL, terms);
+  for (const file of ["README.md", "README.zh-CN.md"]) {
+    const readme = await readFile(new URL(file, workspaceRoot), "utf8");
+    assert.ok(readme.includes(`](${privacy})`), `${file} is missing the privacy policy link`);
+    assert.ok(readme.includes(`](${terms})`), `${file} is missing the terms of service link`);
+  }
+});
