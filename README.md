@@ -223,6 +223,7 @@ The plugin builds and validates the screensaver package, shows you a publishing 
 .claude-plugin/marketplace.json    # Claude Code marketplace
 assets/                            # README images
 docs/mcp-registry.md               # How to publish to the MCP Registry
+docs/mcp-server-guidance.md        # Tool descriptions so MCP works without skills
 server.json                        # MCP Registry metadata
 plugins/cuneflow/
 ├── .codex-plugin/plugin.json      # Codex manifest

@@ -8,7 +8,7 @@
 ## 发布前检查
 
 - [ ] 正式环境 `https://mcp.cuneflow.com/mcp` 稳定可用，功能与测试环境一致（目前正式环境缺少 `screensaver:write` 权限）
-- [ ] 每个工具都有 `title` 和 `readOnlyHint` 或 `destructiveHint` 标注
+- [ ] 每个工具都有 `title` 和 `readOnlyHint` 或 `destructiveHint` 标注，服务说明和工具描述在没有 Skills 时也够用，见 [MCP 服务端描述建议](mcp-server-guidance.md)
 - [ ] `server.json` 中的 `version` 已更新为本次要发布的版本
 - [ ] 有权限修改 `cuneflow.com` 的 DNS 记录
 
