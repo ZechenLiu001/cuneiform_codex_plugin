@@ -79,6 +79,7 @@ Start a new session, run `/mcp`, choose **`plugin:cuneflow:cuneflow`**, and sign
 | | Capability | Details |
 | --- | --- | --- |
 | 🗂️ | **Meetings** | Search meetings and read transcripts, AI summaries, decisions, risks, and action items |
+| ✍️ | **Handwritten notes** | Find recent meetings with handwriting, view note pages as images, and combine them with recording transcripts |
 | 📅 | **Schedules** | Query, create, and manage schedule items; changes are previewed before they are applied |
 | 📄 | **Files** | Search, read, create, and rename CUNEFLOW files |
 | ⬆️ | **Uploads** | Upload PDF and EPUB files you explicitly attach in the conversation |
@@ -144,6 +145,14 @@ Summarize the meetings I attended last week and group unfinished action items by
 ```text
 Find meetings about "product launch" and draft a follow-up email from the transcript
 ```
+
+**Handwritten notes with recordings**
+
+```text
+Find my recent meetings with handwritten notes, combine the note images with the recording transcripts into a table, and keep the sources
+```
+
+The plugin finds the meetings, lists their note pages, then reads the full page images and combines them with the transcripts. Older notes that were never flagged as handwritten need a candidate search and a visual check first; images that haven't synced yet are reported as such. This requires the note-page and image tools to be deployed on the test-environment MCP server.
 
 **Schedules and to-dos**
 
