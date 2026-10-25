@@ -224,3 +224,19 @@ test("links to the live privacy policy and terms of service pages", async () => 
     assert.ok(readme.includes(`](${terms})`), `${file} is missing the terms of service link`);
   }
 });
+
+test("describes the production MCP server for the official MCP Registry", async () => {
+  const server = JSON.parse(await readFile(new URL("server.json", workspaceRoot), "utf8"));
+  const gitignore = await readFile(new URL(".gitignore", workspaceRoot), "utf8");
+
+  // com.cuneflow 前缀依赖 cuneflow.com 的域名认证。
+  assert.match(server.name, /^com\.cuneflow\/[a-z0-9._-]+$/);
+  assert.ok(server.description.length >= 1 && server.description.length <= 100);
+  assert.match(server.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(new URL(server.websiteUrl).hostname, "www.cuneflow.com");
+  assert.deepEqual(server.remotes, [{ type: "streamable-http", url: "https://mcp.cuneflow.com/mcp" }]);
+  // 服务源码不公开，不填写 repository。
+  assert.equal(server.repository, undefined);
+  // 发布用的私钥不能进入仓库。
+  assert.match(gitignore, /^\*\.pem$/m);
+});

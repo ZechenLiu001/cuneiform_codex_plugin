@@ -213,6 +213,8 @@ flowchart LR
 .agents/plugins/marketplace.json   # Codex 插件市场
 .claude-plugin/marketplace.json    # Claude Code 插件市场
 assets/                            # README 图片
+docs/mcp-registry.md               # 发布到 MCP 官方注册表的步骤
+server.json                        # MCP 官方注册表的描述文件
 plugins/cuneflow/
 ├── .codex-plugin/plugin.json      # Codex 插件清单
 ├── .claude-plugin/plugin.json     # Claude Code 插件清单
