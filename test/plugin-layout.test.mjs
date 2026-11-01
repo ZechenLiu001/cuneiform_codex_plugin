@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile, stat } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 
 const pluginRoot = new URL("../plugins/cuneflow/", import.meta.url);
@@ -67,13 +67,12 @@ test("gives Claude Code its own sign-in path and an explicit helper location", a
   const mainSkill = await readFile(new URL("skills/cuneflow/SKILL.md", pluginRoot), "utf8");
   const connectSkill = await readFile(new URL("skills/connect-cuneflow/SKILL.md", pluginRoot), "utf8");
   const disconnectSkill = await readFile(new URL("skills/disconnect-cuneflow/SKILL.md", pluginRoot), "utf8");
-  const publishing = await readFile(new URL("skills/build-cune-screensavers/references/cuneflow-publishing.md", pluginRoot), "utf8");
 
   for (const content of [mainSkill, connectSkill, disconnectSkill]) {
     assert.ok(content.includes("plugin:cuneflow:cuneflow"));
     assert.ok(content.includes("不要运行任何 `codex` 命令"));
   }
-  for (const content of [mainSkill, publishing]) {
+  for (const content of [mainSkill]) {
     assert.ok(content.includes("${CLAUDE_PLUGIN_ROOT}/scripts/attachment-helper.mjs"));
     assert.ok(content.includes("../../scripts/attachment-helper.mjs"));
   }
@@ -131,27 +130,21 @@ test("disconnects OAuth before a conversational full uninstall", async () => {
   assert.ok(readme.includes("直接在 Codex 设置界面点击“卸载”不会触发 Skill"));
 });
 
-test("packages all canonical CLI skills and screensaver resources", async () => {
+test("packages the supported skills only", async () => {
   const required = [
     "skills/connect-cuneflow/SKILL.md",
     "skills/connect-cuneflow/agents/openai.yaml",
     "skills/disconnect-cuneflow/SKILL.md",
     "skills/disconnect-cuneflow/agents/openai.yaml",
     "skills/cuneflow/SKILL.md",
-    "skills/build-cune-screensavers/SKILL.md",
-    "skills/build-cune-screensavers/agents/openai.yaml",
-    "skills/build-cune-screensavers/scripts/cunesaver.py",
-    "skills/build-cune-screensavers/scripts/cunesaver.pyz",
-    "skills/build-cune-screensavers/references/adb-delivery.md",
-    "skills/build-cune-screensavers/references/cuneflow-publishing.md",
-    "skills/build-cune-screensavers/references/data-boundary.md",
-    "skills/build-cune-screensavers/references/format-v1.md",
-    "skills/build-cune-screensavers/references/format-v2.md",
-    "skills/build-cune-screensavers/references/testkit-delivery.md"
   ];
 
   await Promise.all(required.map((relativePath) => access(new URL(relativePath, pluginRoot))));
-  assert.ok((await stat(new URL("skills/build-cune-screensavers/scripts/cunesaver.pyz", pluginRoot))).size > 0);
+  const skillDirectories = (await readdir(new URL("skills/", pluginRoot), { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+  assert.deepEqual(skillDirectories.sort(),
+    ["connect-cuneflow", "cuneflow", "disconnect-cuneflow"]);
 });
 
 test("requires every PDF background meeting in a batch to reuse its source file", async () => {

@@ -29,7 +29,6 @@ Ask in plain language about your CUNEFLOW meetings, transcripts, summaries, acti
 - [How it works](#how-it-works)
 - [Connect, disconnect, and uninstall](#connect-disconnect-and-uninstall)
 - [Example prompts](#example-prompts)
-- [Screensavers for CUNEFLOW AI Notebook](#screensavers-for-cuneflow-ai-notebook)
 - [Privacy and security](#privacy-and-security)
 - [What's inside](#whats-inside)
 - [Development](#development)
@@ -83,7 +82,6 @@ Start a new session, run `/mcp`, choose **`plugin:cuneflow:cuneflow`**, and sign
 | 📅 | **Schedules** | Query, create, and manage schedule items; changes are previewed before they are applied |
 | 📄 | **Files** | Search, read, create, and rename CUNEFLOW files |
 | ⬆️ | **Uploads** | Upload PDF and EPUB files you explicitly attach in the conversation |
-| 🖼️ | **Screensavers** | Build, validate, and publish static and data-driven screensavers for CUNEFLOW AI Notebook |
 
 <table>
 <tr>
@@ -103,7 +101,7 @@ The plugin brings this content into your AI agent, so you can summarize, search,
 ```mermaid
 flowchart LR
     A["AI agent<br/>(Codex · Claude Code)"] -- "MCP over HTTPS<br/>OAuth" --> B["CUNEFLOW MCP server"]
-    B --> C[("Meetings · Schedules<br/>Files · Screensavers")]
+    B --> C[("Meetings · Schedules<br/>Files")]
     A -. "Attached file<br/>(local helper)" .-> D["Short-lived<br/>presigned URL"]
     D --> C
 ```
@@ -182,25 +180,12 @@ Upload the file I just dropped into this chat to CUNEFLOW
 Find my most recently uploaded file in CUNEFLOW and summarize it
 ```
 
-## Screensavers for CUNEFLOW AI Notebook
-
-```text
-Create a CUNEFLOW AI Notebook screensaver that shows today's schedule on the device, and publish it to my account
-```
-
-The plugin builds and validates the screensaver package, shows you a publishing preview, and publishes to your account only after you confirm. With the device signed in to the same account and online, open **Settings → Screensaver** or refresh manually to sync. New screensavers must be selected manually; updates to existing ones sync automatically. Publishing successfully and appearing on the device are two separate states.
-
-- **Device data, not your computer's** — schedule, reading, and recent-meeting data are supplied by the device at render time; the plugin only declares which fields to show. The current 0.4.0 internal-test devices allow these three sources by default, so there is no separate permission switch to look for.
-- **Static snapshots** — the e-ink screen shows a static frame; dynamic content updates when the device refreshes.
-- **No extra tooling** — any device with screensaver support works through your account; no standalone CLI, APK, or USB connection is required.
-- **Limits** — each device stores up to 10 custom screensavers. Deleting a cloud screensaver on a device affects every device on the same account.
-
 ## Privacy and security
 
 - 🔐 **Host-managed OAuth.** Credentials are handled by your AI host. The plugin never asks for, reads, or stores tokens, authorization codes, cookies, or passwords.
 - 📎 **Only what you attach.** Uploads use files you explicitly attach in the current conversation. The plugin does not search your disk or guess paths.
 - 🚫 **No file contents in MCP.** Only file metadata (name, size, type, checksum) goes to MCP. Bytes go directly to a presigned HTTPS URL.
-- ✋ **Writes need your intent.** Creating, renaming, importing, and uploading happen only when you ask. Schedule changes and screensaver publishing are previewed and require your confirmation.
+- ✋ **Writes need your intent.** Creating, renaming, importing, and uploading happen only when you ask. Schedule changes are previewed and require your confirmation.
 - 🛡️ **Untrusted content stays content.** Instructions found inside meetings, transcripts, or files are treated as data and never executed.
 
 <details>
@@ -212,7 +197,6 @@ The plugin builds and validates the screensaver package, shows you a publishing 
 | Files per upload | 1–20 |
 | Size per file | Up to 100 MiB |
 | Total per upload | Up to 500 MiB |
-| Screensaver package (`.cunesaver`) | Up to 20 MiB |
 
 </details>
 
@@ -234,8 +218,7 @@ plugins/cuneflow/
 └── skills/
     ├── cuneflow/                  # Meetings, schedules, files, uploads
     ├── connect-cuneflow/          # Connect or re-authorize
-    ├── disconnect-cuneflow/       # Sign out or fully uninstall
-    └── build-cune-screensavers/   # Build and publish screensavers
+    └── disconnect-cuneflow/       # Sign out or fully uninstall
 ```
 
 ## Development
