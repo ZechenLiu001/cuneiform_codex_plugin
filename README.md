@@ -1,120 +1,248 @@
-# CUNEFLOW Plugin
+<div align="center">
 
-CUNEFLOW 的 Codex 与 Claude 插件。安装并授权后，可以通过自然语言查询会议、转写、纪要、行动项和日程，也可以把当前对话中附加的本地文件安全上传到 CUNEFLOW。
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/cuneflow-wordmark-light.svg">
+  <img src="assets/cuneflow-wordmark-dark.svg" alt="CUNEFLOW" height="56">
+</picture>
 
-文件上传使用插件内置 Helper 将原始字节直接发送到 CUNEFLOW 返回的短时效预签名地址。文件内容不会进入 MCP JSON-RPC，也不要求用户安装 `cuneflow-cli`。
+### Your meetings, schedules, and files — inside Codex and Claude Code
 
-## 在 Codex 中安装
+[Website](https://www.cuneflow.com) · [Privacy](https://www.cuneflow.com/privacy-policy) · [Terms](https://www.cuneflow.com/terms-of-service) · [Support](mailto:support@cuneflow.com)
 
-将 GitHub 仓库 `ZechenLiu001/cuneiform_codex_plugin` 添加为插件市场，然后安装其中的 CUNEFLOW 插件。也可以使用命令行：
+English · [简体中文](README.zh-CN.md)
+
+[![Version](https://img.shields.io/badge/version-0.1.1-191919)](#development) [![MCP](https://img.shields.io/badge/MCP-Streamable%20HTTP-191919)](https://modelcontextprotocol.io)
+
+<img src="assets/cuneflow-notebook.jpg" alt="CUNEFLOW AI Notebook with its pen, folio cover, and box" width="720">
+
+</div>
+
+Ask in plain language about your CUNEFLOW meetings, transcripts, summaries, action items, and schedules, and safely upload files you attach in the conversation — without leaving your AI agent.
+
+> [!NOTE]
+> Version `0.1.1` on `main` connects to the CUNEFLOW **production environment** MCP server (`https://mcp.cuneflow.com/mcp`). The test plugin remains on the `test` branch.
+
+## Contents
+
+- [Installation](#installation)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Connect, disconnect, and uninstall](#connect-disconnect-and-uninstall)
+- [Example prompts](#example-prompts)
+- [Privacy and security](#privacy-and-security)
+- [What's inside](#whats-inside)
+- [Development](#development)
+
+## Installation
+
+> [!NOTE]
+> CUNEFLOW is not yet listed in the official Codex plugin directory or the official Claude plugin marketplace. On both hosts, install it from this repository's own marketplace.
+
+<table>
+<tr>
+<th width="50%">Codex</th>
+<th width="50%">Claude Code</th>
+</tr>
+<tr>
+<td valign="top">
+
+Add this repository as a marketplace, then install the plugin:
 
 ```bash
 codex plugin marketplace add ZechenLiu001/cuneiform_codex_plugin --ref main
 codex plugin add cuneflow@cuneflow
 ```
 
-安装完成后新建一个 Codex 任务，发送“连接 CUNEFLOW”。插件会启动由 Codex 管理的 OAuth 授权流程；完成授权后，建议再新建一个任务验证会议、日程或文件功能。
+Start a new task and say **"Connect CUNEFLOW"** to sign in. After authorizing, start another new task to try it out.
 
-### 重新连接
+</td>
+<td valign="top">
 
-如果首次安装时取消或拒绝了授权，或者登录凭据后来失效，不需要卸载插件或编辑配置。在任意 Codex 任务中发送：
+Add this repository as a marketplace, then install the plugin:
 
-```text
-连接或重新授权 CUNEFLOW
+```bash
+claude plugin marketplace add \
+  ZechenLiu001/cuneiform_codex_plugin
+claude plugin install cuneflow@cuneflow
 ```
 
-也可以直接提出会议、日程或文件请求；检测到未连接时，插件会为该请求启动一次 OAuth 授权流程。若用户关闭或拒绝授权页面，插件不会反复弹出，之后再次发送上面的连接请求即可重试。
+Start a new session, run `/mcp`, choose **`plugin:cuneflow:cuneflow`**, and sign in in your browser.
 
-### 断开连接与彻底卸载
+</td>
+</tr>
+</table>
 
-在 Codex 对话中发送：
+## Features
 
-```text
-断开 CUNEFLOW，并清除登录状态
+| | Capability | Details |
+| --- | --- | --- |
+| 🗂️ | **Meetings** | Search meetings and read transcripts, AI summaries, decisions, risks, and action items |
+| ✍️ | **Handwritten notes** | Find recent meetings with handwriting, view note pages as images, and combine them with recording transcripts |
+| 📅 | **Schedules** | Query, create, and manage schedule items; changes are previewed before they are applied |
+| 📄 | **Files** | Search, read, create, and rename CUNEFLOW files |
+| ⬆️ | **Uploads** | Upload PDF and EPUB files you explicitly attach in the conversation |
+
+<table>
+<tr>
+<td width="50%"><img src="assets/notebook-transcript.jpg" alt="A meeting transcript on the CUNEFLOW AI Notebook E-Ink screen"></td>
+<td width="50%"><img src="assets/notebook-handwriting.jpg" alt="Handwritten notes and an AI mind map on the CUNEFLOW AI Notebook"></td>
+</tr>
+<tr>
+<td align="center">Meetings recorded and transcribed on the notebook…</td>
+<td align="center">…and handwriting captured alongside them</td>
+</tr>
+</table>
+
+The plugin brings this content into your AI agent, so you can summarize, search, and follow up without switching apps.
+
+## How it works
+
+```mermaid
+flowchart LR
+    A["AI agent<br/>(Codex · Claude Code)"] -- "MCP over HTTPS<br/>OAuth" --> B["CUNEFLOW MCP server"]
+    B --> C[("Meetings · Schedules<br/>Files")]
+    A -. "Attached file<br/>(local helper)" .-> D["Short-lived<br/>presigned URL"]
+    D --> C
 ```
 
-插件会运行 `codex mcp logout cuneflow`，清除当前 Codex 主机托管的 CUNEFLOW OAuth 凭据，但保留插件本身。
+- **MCP connection** — the plugin registers the hosted CUNEFLOW MCP server. Sign-in uses OAuth managed by your AI host; you never paste tokens.
+- **File uploads** — a bundled helper streams the raw bytes straight to a short-lived presigned URL returned by CUNEFLOW. File contents never pass through MCP JSON-RPC, and you don't need to install `cuneflow-cli`.
 
-如果需要同时清除登录状态并卸载插件，请发送：
+## Connect, disconnect, and uninstall
 
-```text
-彻底卸载 CUNEFLOW，并清除登录状态
-```
+| Goal | Codex — say in chat | Claude Code |
+| --- | --- | --- |
+| Connect or reconnect | *"Connect or re-authorize CUNEFLOW"* | Run `/mcp`, choose `plugin:cuneflow:cuneflow`, and sign in |
+| Sign out | *"Disconnect CUNEFLOW and clear the sign-in"* — runs `codex mcp logout cuneflow` and keeps the plugin | Run `/mcp`, choose `plugin:cuneflow:cuneflow`, and clear its authentication |
+| Full uninstall | *"Fully uninstall CUNEFLOW and clear the sign-in"* — signs out first, then removes the plugin | Sign out as above, then `claude plugin uninstall cuneflow@cuneflow` |
 
-该流程会先退出 MCP 登录，再卸载插件。直接在 Codex 设置界面点击“卸载”不会触发 Skill，可能保留 OAuth 凭据；之后重新安装插件时可能继续复用原登录状态。
+Reconnecting never requires reinstalling the plugin or editing any config.
 
-## 使用示例
+<details>
+<summary><b>More about authorization in Codex</b></summary>
 
-### 会议与行动项
+- If you canceled or declined authorization when you first installed, or your sign-in expires later, just ask to connect again.
+- You can also send a meeting, schedule, or file request directly. If CUNEFLOW is not connected, the plugin starts **one** OAuth flow for that request. If you close or decline the page, it won't keep prompting; ask to connect again when you're ready.
+- Clicking **Uninstall** in the Codex settings UI does not trigger the plugin's skill and may keep the OAuth credential. If you reinstall later, the old sign-in may be reused. Use the full-uninstall prompt above to clear it.
 
-```text
-连接 CUNEFLOW，并总结我最近一次会议的关键决策、风险和行动项
-```
+</details>
 
-```text
-总结我上周参加的会议，按负责人整理还没有完成的行动项
-```
+## Example prompts
 
-```text
-查找关于“产品发布”的会议，并根据转写整理一封跟进邮件
-```
-
-### 日程与待办
+**Meetings and action items**
 
 ```text
-查看我明天的日程安排，找出时间冲突并整理待办
-```
-
-```text
-查看我本周剩余日程，帮我找一个两小时的空闲时段
+Connect CUNEFLOW and summarize the key decisions, risks, and action items from my latest meeting
 ```
 
 ```text
-把明天下午三点的项目同步会改到四点，先让我确认修改内容
-```
-
-### 文件
-
-```text
-把我刚拖入对话的文件上传到 CUNEFLOW，并创建关联会议
+Summarize the meetings I attended last week and group unfinished action items by owner
 ```
 
 ```text
-把我刚拖入对话的文件上传到 CUNEFLOW
+Find meetings about "product launch" and draft a follow-up email from the transcript
+```
+
+**Handwritten notes with recordings**
+
+```text
+Find my recent meetings with handwritten notes, combine the note images with the recording transcripts into a table, and keep the sources
+```
+
+The plugin finds the meetings, lists their note pages, then reads the full page images and combines them with the transcripts. Older notes that were never flagged as handwritten need a candidate search and a visual check first; images that haven't synced yet are reported as such. This requires the note-page and image tools to be deployed on the test-environment MCP server.
+
+**Schedules and to-dos**
+
+```text
+Show my schedule for tomorrow, find any conflicts, and list my to-dos
 ```
 
 ```text
-查找 CUNEFLOW 中最近上传的文件，并概括其中的主要内容
+Look at the rest of my week and find a two-hour free slot
 ```
-
-### CUNEFLOW 屏保生产
 
 ```text
-制作一个显示设备上今日日程的 CUNEFLOW AI Notebook 屏保，并发布到我的账号
+Move tomorrow's 3 PM project sync to 4 PM — show me the change before applying it
 ```
 
-插件会制作并校验屏保包，展示发布预览，再按你的确认发布到账号。设备登录同一账号并联网后，打开 **设置 → 屏保** 或手动刷新即可同步；新屏保需要手动选中，已有屏保的更新会自动同步。发布成功和设备已经显示是两个独立状态。
+**Files**
 
-日程、阅读和最近会议的数据由设备在渲染时提供，插件只声明需要显示的字段。当前 0.4.0 内测设备默认允许这三类来源，无需寻找单独的授权开关。墨水屏显示的是静态快照，动态内容随设备刷新时机更新。
+```text
+Upload the file I just dropped into this chat to CUNEFLOW and create a linked meeting
+```
 
-使用已支持屏保功能的设备即可走这条账号链路，无需安装独立 CLI、APK 或连接 USB。每台设备最多保存 10 个自定义屏保；在设备上删除云端屏保会影响同账号所有设备。
+```text
+Upload the file I just dropped into this chat to CUNEFLOW
+```
 
-## 功能
+```text
+Find my most recently uploaded file in CUNEFLOW and summarize it
+```
 
-- 查询会议、转写、AI 纪要和行动项
-- 查询、创建和管理日程
-- 查询、读取、创建和重命名 CUNEFLOW 文件
-- 上传当前对话中明确附加的本地文件
-- 制作、验证和发布 CUNEFLOW AI Notebook 静态屏保及日程、阅读、会议动态屏保
+## Privacy and security
 
-## 本地验证
+- 🔐 **Host-managed OAuth.** Credentials are handled by your AI host. The plugin never asks for, reads, or stores tokens, authorization codes, cookies, or passwords.
+- 📎 **Only what you attach.** Uploads use files you explicitly attach in the current conversation. The plugin does not search your disk or guess paths.
+- 🚫 **No file contents in MCP.** Only file metadata (name, size, type, checksum) goes to MCP. Bytes go directly to a presigned HTTPS URL.
+- ✋ **Writes need your intent.** Creating, renaming, importing, and uploading happen only when you ask. Schedule changes are previewed and require your confirmation.
+- 🛡️ **Untrusted content stays content.** Instructions found inside meetings, transcripts, or files are treated as data and never executed.
 
-需要 Node.js 18 或更高版本：
+<details>
+<summary><b>Upload limits</b></summary>
+
+| Item | Limit |
+| --- | --- |
+| Supported user file types | PDF, EPUB |
+| Files per upload | 1–20 |
+| Size per file | Up to 100 MiB |
+| Total per upload | Up to 500 MiB |
+
+</details>
+
+## What's inside
+
+```text
+.agents/plugins/marketplace.json   # Codex marketplace
+.claude-plugin/marketplace.json    # Claude Code marketplace
+assets/                            # README images
+docs/mcp-registry.md               # How to publish to the MCP Registry
+docs/mcp-server-guidance.md        # Tool descriptions so MCP works without skills
+server.json                        # MCP Registry metadata
+plugins/cuneflow/
+├── .codex-plugin/plugin.json      # Codex manifest
+├── .claude-plugin/plugin.json     # Claude Code manifest
+├── .claude-plugin/mcp.json        # Hosted MCP server (Claude Code)
+├── .mcp.json                      # Hosted MCP server (Codex)
+├── scripts/attachment-helper.mjs  # Local upload helper
+└── skills/
+    ├── cuneflow/                  # Meetings, schedules, files, uploads
+    ├── connect-cuneflow/          # Connect or re-authorize
+    └── disconnect-cuneflow/       # Sign out or fully uninstall
+```
+
+## Development
+
+Requires Node.js 18 or later.
 
 ```bash
 npm test
 ```
 
-当前 `main` 分支的 `0.1.1` 版本连接 CUNEFLOW 正式环境 MCP（`https://mcp.cuneflow.com/mcp`）。
+To install the test plugin, use `--ref test`. When switching from test to production, reconnect and authorize with your production account.
 
-测试环境插件保留在 `test` 分支，安装时使用 `--ref test`。从测试环境切换到正式环境后，请重新授权并使用正式账号验证功能。
+Validate the Claude Code marketplace and plugin manifests:
+
+```bash
+claude plugin validate .
+```
+
+To try local changes in Claude Code without installing, load the plugin directory for one session:
+
+```bash
+claude --plugin-dir ./plugins/cuneflow
+```
+
+<div align="center">
+<br>
+<sub>Listen · Sketch · Think — <a href="https://www.cuneflow.com">cuneflow.com</a></sub>
+</div>

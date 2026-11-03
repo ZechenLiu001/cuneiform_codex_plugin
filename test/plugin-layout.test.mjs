@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile, stat } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 
 const pluginRoot = new URL("../plugins/cuneflow/", import.meta.url);
@@ -26,9 +26,64 @@ test("shares one plugin identity across Codex and Claude manifests", async () =>
   ]);
 });
 
+test("keeps English and Chinese READMEs linked and structurally aligned", async () => {
+  const english = await readFile(new URL("README.md", workspaceRoot), "utf8");
+  const chinese = await readFile(new URL("README.zh-CN.md", workspaceRoot), "utf8");
+  const sectionCount = (content) => content.match(/^## /gm)?.length ?? 0;
+
+  assert.ok(english.includes("](README.zh-CN.md)"), "README.md must link to the Chinese README");
+  assert.ok(chinese.includes("](README.md)"), "README.zh-CN.md must link to the English README");
+  assert.equal(sectionCount(english), sectionCount(chinese));
+  const commands = [
+    "codex plugin marketplace add",
+    "codex plugin add cuneflow@cuneflow",
+    "claude plugin marketplace add",
+    "ZechenLiu001/cuneiform_codex_plugin",
+    "claude plugin install cuneflow@cuneflow",
+    "plugin:cuneflow:cuneflow",
+    "claude --plugin-dir"
+  ];
+  for (const command of commands) {
+    assert.ok(english.includes(command), `README.md is missing: ${command}`);
+    assert.ok(chinese.includes(command), `README.zh-CN.md is missing: ${command}`);
+  }
+});
+
+test("publishes the plugin through a Claude Code marketplace at the repository root", async () => {
+  const marketplace = JSON.parse(await readFile(new URL(".claude-plugin/marketplace.json", workspaceRoot), "utf8"));
+  const claude = await readJson(".claude-plugin/plugin.json");
+  const codexMarketplace = JSON.parse(await readFile(new URL(".agents/plugins/marketplace.json", workspaceRoot), "utf8"));
+
+  // 两个宿主使用相同的安装 ID：cuneflow@cuneflow。
+  assert.equal(marketplace.name, codexMarketplace.name);
+  assert.ok(marketplace.owner?.name);
+  assert.equal(marketplace.plugins.length, 1);
+  assert.equal(marketplace.plugins[0].name, claude.name);
+  assert.equal(marketplace.plugins[0].source, "./plugins/cuneflow");
+  await access(new URL("plugins/cuneflow/.claude-plugin/plugin.json", workspaceRoot));
+});
+
+test("gives Claude Code its own sign-in path and an explicit helper location", async () => {
+  const mainSkill = await readFile(new URL("skills/cuneflow/SKILL.md", pluginRoot), "utf8");
+  const connectSkill = await readFile(new URL("skills/connect-cuneflow/SKILL.md", pluginRoot), "utf8");
+  const disconnectSkill = await readFile(new URL("skills/disconnect-cuneflow/SKILL.md", pluginRoot), "utf8");
+
+  for (const content of [mainSkill, connectSkill, disconnectSkill]) {
+    assert.ok(content.includes("plugin:cuneflow:cuneflow"));
+    assert.ok(content.includes("不要运行任何 `codex` 命令"));
+  }
+  for (const content of [mainSkill]) {
+    assert.ok(content.includes("${CLAUDE_PLUGIN_ROOT}/scripts/attachment-helper.mjs"));
+    assert.ok(content.includes("../../scripts/attachment-helper.mjs"));
+  }
+  // 相对路径必须真的指向插件内置的 Helper。
+  await access(new URL("skills/cuneflow/../../scripts/attachment-helper.mjs", pluginRoot));
+});
+
 test("keeps README examples aligned with Codex default prompts", async () => {
   const codex = await readJson(".codex-plugin/plugin.json");
-  const readme = await readFile(new URL("README.md", workspaceRoot), "utf8");
+  // Codex 默认提示词是中文，对应中文 README。
+  const readme = await readFile(new URL("README.zh-CN.md", workspaceRoot), "utf8");
 
   for (const prompt of codex.interface.defaultPrompt) {
     assert.ok(readme.includes(prompt), `README is missing default prompt: ${prompt}`);
@@ -49,7 +104,7 @@ test("exposes one authenticated CUNEFLOW MCP server on both hosts", async () => 
 test("keeps OAuth recovery available after a user cancels initial authorization", async () => {
   const connectSkill = await readFile(new URL("skills/connect-cuneflow/SKILL.md", pluginRoot), "utf8");
   const mainSkill = await readFile(new URL("skills/cuneflow/SKILL.md", pluginRoot), "utf8");
-  const readme = await readFile(new URL("README.md", workspaceRoot), "utf8");
+  const readme = await readFile(new URL("README.zh-CN.md", workspaceRoot), "utf8");
 
   for (const content of [connectSkill, mainSkill]) {
     assert.ok(content.includes("codex mcp login cuneflow"));
@@ -62,7 +117,7 @@ test("keeps OAuth recovery available after a user cancels initial authorization"
 
 test("disconnects OAuth before a conversational full uninstall", async () => {
   const disconnectSkill = await readFile(new URL("skills/disconnect-cuneflow/SKILL.md", pluginRoot), "utf8");
-  const readme = await readFile(new URL("README.md", workspaceRoot), "utf8");
+  const readme = await readFile(new URL("README.zh-CN.md", workspaceRoot), "utf8");
 
   const logoutIndex = disconnectSkill.indexOf("codex mcp logout cuneflow");
   const removeIndex = disconnectSkill.indexOf("codex plugin remove cuneflow@cuneflow");
@@ -75,27 +130,21 @@ test("disconnects OAuth before a conversational full uninstall", async () => {
   assert.ok(readme.includes("直接在 Codex 设置界面点击“卸载”不会触发 Skill"));
 });
 
-test("packages all canonical CLI skills and screensaver resources", async () => {
+test("packages the supported skills only", async () => {
   const required = [
     "skills/connect-cuneflow/SKILL.md",
     "skills/connect-cuneflow/agents/openai.yaml",
     "skills/disconnect-cuneflow/SKILL.md",
     "skills/disconnect-cuneflow/agents/openai.yaml",
     "skills/cuneflow/SKILL.md",
-    "skills/build-cune-screensavers/SKILL.md",
-    "skills/build-cune-screensavers/agents/openai.yaml",
-    "skills/build-cune-screensavers/scripts/cunesaver.py",
-    "skills/build-cune-screensavers/scripts/cunesaver.pyz",
-    "skills/build-cune-screensavers/references/adb-delivery.md",
-    "skills/build-cune-screensavers/references/cuneflow-publishing.md",
-    "skills/build-cune-screensavers/references/data-boundary.md",
-    "skills/build-cune-screensavers/references/format-v1.md",
-    "skills/build-cune-screensavers/references/format-v2.md",
-    "skills/build-cune-screensavers/references/testkit-delivery.md"
   ];
 
   await Promise.all(required.map((relativePath) => access(new URL(relativePath, pluginRoot))));
-  assert.ok((await stat(new URL("skills/build-cune-screensavers/scripts/cunesaver.pyz", pluginRoot))).size > 0);
+  const skillDirectories = (await readdir(new URL("skills/", pluginRoot), { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+  assert.deepEqual(skillDirectories.sort(),
+    ["connect-cuneflow", "cuneflow", "disconnect-cuneflow"]);
 });
 
 test("requires every PDF background meeting in a batch to reuse its source file", async () => {
@@ -152,4 +201,35 @@ test("keeps effective schedule semantics aligned on both hosts", async () => {
     assert.ok(skill.includes("“已取消”使用 `cancelled`"));
     assert.ok(skill.includes("用户没有表达状态限制时不传 `statusFilters`"));
   }
+});
+
+test("links to the live privacy policy and terms of service pages", async () => {
+  const codex = await readJson(".codex-plugin/plugin.json");
+  const privacy = "https://www.cuneflow.com/privacy-policy";
+  const terms = "https://www.cuneflow.com/terms-of-service";
+
+  // /privacy 和 /terms 在官网上是 404，目录审核会检查这两个链接。
+  assert.equal(codex.interface.privacyPolicyURL, privacy);
+  assert.equal(codex.interface.termsOfServiceURL, terms);
+  for (const file of ["README.md", "README.zh-CN.md"]) {
+    const readme = await readFile(new URL(file, workspaceRoot), "utf8");
+    assert.ok(readme.includes(`](${privacy})`), `${file} is missing the privacy policy link`);
+    assert.ok(readme.includes(`](${terms})`), `${file} is missing the terms of service link`);
+  }
+});
+
+test("describes the production MCP server for the official MCP Registry", async () => {
+  const server = JSON.parse(await readFile(new URL("server.json", workspaceRoot), "utf8"));
+  const gitignore = await readFile(new URL(".gitignore", workspaceRoot), "utf8");
+
+  // com.cuneflow 前缀依赖 cuneflow.com 的域名认证。
+  assert.match(server.name, /^com\.cuneflow\/[a-z0-9._-]+$/);
+  assert.ok(server.description.length >= 1 && server.description.length <= 100);
+  assert.match(server.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(new URL(server.websiteUrl).hostname, "www.cuneflow.com");
+  assert.deepEqual(server.remotes, [{ type: "streamable-http", url: "https://mcp.cuneflow.com/mcp" }]);
+  // 服务源码不公开，不填写 repository。
+  assert.equal(server.repository, undefined);
+  // 发布用的私钥不能进入仓库。
+  assert.match(gitignore, /^\*\.pem$/m);
 });
