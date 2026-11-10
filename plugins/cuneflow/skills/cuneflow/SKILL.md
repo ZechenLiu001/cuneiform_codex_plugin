@@ -21,7 +21,9 @@ description: 使用 CUNEFLOW 查询和加工会议、手写笔记图片、转写
 | 查看手写笔记图片 | `get_meeting_note_image` | 返回完整页面 PNG；结合录音时再读取转写 |
 | 单个会议详情 | `get_meeting` | 需要 `meetingId` |
 | 会议纪要、行动项、决策、风险 | `get_meeting_summary` | 多数问答优先使用 |
-| 原文转录 | `get_meeting_transcript` | 分页读取 |
+| 原文转录 | `get_meeting_transcript` | 已知会议 ID 时分页读取 |
+| 跨会议查原话 | `search_transcripts` | 按关键词查找并按会议时间从新到旧浏览 |
+| 核对搜索命中 | `get_transcript_evidence` | 用证据 ID 读取原话及前后文 |
 | 待办/行动项 | `list_tasks` | 可按会议筛选 |
 | 日历/时间安排 | `list_schedule_tasks` | 必须传毫秒级时间范围；可按来源和状态筛选 |
 | 会议文件/附件 | `list_files` → `get_file` / `get_file_text` | 先列表再读取详情或文本 |
@@ -35,6 +37,10 @@ description: 使用 CUNEFLOW 查询和加工会议、手写笔记图片、转写
 | 修改日程状态 | `preview_change_schedule_task_status` → `apply_change_schedule_task_status` | 预览后必须得到用户确认 |
 
 ## 使用原则
+
+跨会议提问时，若测试环境已暴露 `search_transcripts` 和 `get_transcript_evidence`，优先使用这两个工具。查「最近几场」时，索引结果按 `meetingAt` 从新到旧，按会议 ID 去重，场数不足时使用 `nextCursor` 继续原查询。索引状态为 `partial` 时，按已索引范围说明结果。
+
+查后续决定时，先用项目名、功能名或明确的问题把证据限定在同一事项，再查后续会议里的放行、延期、撤回或改期。引用原话前读取证据上下文，区分提议、讨论条件、明确决定和回顾旧事，并附会议标题、说话人和录音时间点。同词但无法确认同一事项时，说明证据只支持到哪一步。
 
 1. 一般会议总结优先使用摘要；用户要求原话、证据或结合手写与录音整理时读取相关转录。
 2. 用户使用模糊指代时，先定位会议；有多个候选时请用户确认，不要猜。
